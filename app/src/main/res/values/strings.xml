@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">IsenSmartCompanion</string>
+    <string name="smart_companion">Smart Companion</string>
+    <string name="isen_logo">ISEN Logo</string>
+    <string name="ask_a_question">Ask a question</string>
+    <string name="send">Send</string>
+    <string name="question_submitted">Question submitted</string>
+    <string name="home">Home</string>
+    <string name="events">Events</string>
+    <string name="history">History</string>
+    <string name="event_details_activity">Go to event details activity</string>
 </resources>
