@@ -13,4 +13,5 @@
     <string name="when_label">When? </string>
     <string name="category_label">Category: </string>
     <string name="description_label">Description: </string>
+    <string name="please_ask">You must ask a question</string>
 </resources>

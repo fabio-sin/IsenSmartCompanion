@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +38,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,12 +51,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.ai.client.generativeai.BuildConfig
+import com.google.ai.client.generativeai.GenerativeModel
 import fr.isen.sintoni.isensmartcompanion.ui.theme.IsenSmartCompanionTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,12 +92,40 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+class Chatbot : ViewModel() {
+
+    val generativeModel = GenerativeModel(
+        modelName = "gemini-1.5-flash",
+        apiKey = fr.isen.sintoni.isensmartcompanion.BuildConfig.GEMINI_API_KEY
+    )
+
+    var messages = mutableStateListOf<String>()
+        private set
+
+
+    fun sendMessage(userInput: String) {
+        messages.add("You: $userInput")
+        viewModelScope.launch {
+            try {
+                val response = generativeModel.generateContent(userInput)
+                val aiResponse = response.text ?: "No response"
+                messages.add("Companion: $aiResponse")
+            } catch (e: Exception) {
+                messages.add("Error: ${e.message}")
+            }
+        }
+    }
+}
+
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
 
+    val viewModel: Chatbot = viewModel()
+
     var userInput by remember { mutableStateOf("") }
-    var response by remember { mutableStateOf("") }
+
+    val messages = remember { viewModel.messages }
 
     Column(
         modifier = modifier
@@ -112,12 +148,26 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            Text(text = response, fontSize = 16.sp, modifier = Modifier.padding(top = 16.dp))
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth().padding(8.dp),
+            ) {
+                items(messages) { message ->
+                    Text(
+                        text = message,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(2.dp)
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        Row(verticalAlignment = Alignment.CenterVertically)
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        )
         {
             TextField(
                 value = userInput,
@@ -127,12 +177,16 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 trailingIcon = {
                     Button(
                         onClick = {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.question_submitted),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            response = "Response"
+                            if (userInput.isNotBlank()) {
+                                viewModel.sendMessage(userInput)
+                                userInput = ""
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.please_ask),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(Color.Red)
                     ) {
