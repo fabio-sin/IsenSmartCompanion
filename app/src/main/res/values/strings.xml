@@ -9,4 +9,8 @@
     <string name="events">Events</string>
     <string name="history">History</string>
     <string name="event_details_activity">Go to event details activity</string>
+    <string name="where_label">Where? </string>
+    <string name="when_label">When? </string>
+    <string name="category_label">Category: </string>
+    <string name="description_label">Description: </string>
 </resources>

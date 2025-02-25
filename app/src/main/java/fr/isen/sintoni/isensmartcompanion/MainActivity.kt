@@ -7,29 +7,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -37,7 +34,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.internal.composableLambda
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -106,7 +102,12 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier.size(200.dp, 100.dp)
             )
 
-            Text(text = context.getString(R.string.smart_companion), fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp))
+            Text(
+                text = context.getString(R.string.smart_companion),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
 
             Text(text = response, fontSize = 16.sp, modifier = Modifier.padding(top = 16.dp))
         }
@@ -123,7 +124,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 trailingIcon = {
                     Button(
                         onClick = {
-                            Toast.makeText(context, context.getString(R.string.question_submitted), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.question_submitted),
+                                Toast.LENGTH_SHORT
+                            ).show()
                             response = "Response"
                         },
                         colors = ButtonDefaults.buttonColors(Color.Red)
@@ -141,22 +146,71 @@ fun MainScreen(modifier: Modifier = Modifier) {
     }
 }
 
+data class Event(
+    val id: Int,
+    val title: String,
+    val description: String,
+    val date: String,
+    val location: String,
+    val category: String
+)
+
+
+fun getFakeEvents(): List<Event> {
+    return listOf(
+        Event(1, "BDE Party", "A party organized by BDE", "02/02/2025", "ISEN Campus", "Social"),
+        Event(
+            2,
+            "Gala",
+            "Annual Gala to celebrate the year's success",
+            "30/05/2025",
+            "Hotel",
+            "Formal"
+        ),
+        Event(
+            3,
+            "Cohesion Day",
+            "Activities for new students",
+            "02/09/2024",
+            "Mourillon",
+            "Team-building"
+        )
+    )
+}
+
+
 @Composable
 fun EventsScreen() {
     val context = LocalContext.current
 
-    Button(
-        onClick = {
-            val intent = Intent(context, EventDetailActivity::class.java)
-            context.startActivity(intent)
-        },
-        modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center),
-        colors = ButtonDefaults.buttonColors(Color.Red)
-    ) {
-        Text(
-            text = context.getString(R.string.event_details_activity),
-            color = Color.White
-        )
+    val events = getFakeEvents()
+
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(events) { event ->
+            Card(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent = Intent(context, EventDetailActivity::class.java)
+                        intent.putExtra("event_id", event.id)
+                        context.startActivity(intent)
+                    },
+                colors = CardDefaults.cardColors(containerColor = Color.Red),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = event.title,
+                        fontSize = 20.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(text = event.date, fontSize = 14.sp, color = Color.White)
+                    Text(text = event.location, fontSize = 14.sp, color = Color.White)
+                }
+            }
+        }
     }
 }
 
@@ -170,21 +224,36 @@ fun BottomNavBar(navController: NavController) {
 
     val currentDest = navController.currentBackStackEntryAsState().value?.destination?.route
 
-    NavigationBar{
+    NavigationBar {
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = context.getString(R.string.home)) },
-            label = { context.getString(R.string.home)},
+            icon = {
+                Icon(
+                    Icons.Default.Home,
+                    contentDescription = context.getString(R.string.home)
+                )
+            },
+            label = { context.getString(R.string.home) },
             selected = currentDest == "home",
             onClick = { navController.navigate("home") }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Notifications, contentDescription = context.getString(R.string.events)) },
+            icon = {
+                Icon(
+                    Icons.Default.Notifications,
+                    contentDescription = context.getString(R.string.events)
+                )
+            },
             label = { context.getString(R.string.events) },
             selected = currentDest == "events",
             onClick = { navController.navigate("events") }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Refresh, contentDescription = context.getString(R.string.history)) },
+            icon = {
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = context.getString(R.string.history)
+                )
+            },
             label = { context.getString(R.string.history) },
             selected = currentDest == "history",
             onClick = { navController.navigate("history") }
