@@ -2,6 +2,7 @@ package fr.isen.sintoni.isensmartcompanion
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,6 +27,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -33,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -146,68 +149,57 @@ fun MainScreen(modifier: Modifier = Modifier) {
     }
 }
 
-data class Event(
-    val id: Int,
-    val title: String,
-    val description: String,
-    val date: String,
-    val location: String,
-    val category: String
-)
-
-
-fun getFakeEvents(): List<Event> {
-    return listOf(
-        Event(1, "BDE Party", "A party organized by BDE", "02/02/2025", "ISEN Campus", "Social"),
-        Event(
-            2,
-            "Gala",
-            "Annual Gala to celebrate the year's success",
-            "30/05/2025",
-            "Hotel",
-            "Formal"
-        ),
-        Event(
-            3,
-            "Cohesion Day",
-            "Activities for new students",
-            "02/09/2024",
-            "Mourillon",
-            "Team-building"
-        )
-    )
-}
-
-
 @Composable
 fun EventsScreen() {
     val context = LocalContext.current
 
-    val events = getFakeEvents()
+    val eventsState = remember { mutableStateOf<List<Event>>(emptyList()) }
+    val isLoading = remember { mutableStateOf(true) }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(events) { event ->
-            Card(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(context, EventDetailActivity::class.java)
-                        intent.putExtra("event_id", event.id)
-                        context.startActivity(intent)
-                    },
-                colors = CardDefaults.cardColors(containerColor = Color.Red),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-            ) {
-                Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = event.title,
-                        fontSize = 20.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(text = event.date, fontSize = 14.sp, color = Color.White)
-                    Text(text = event.location, fontSize = 14.sp, color = Color.White)
+    // Coroutine pour récupérer les events
+    LaunchedEffect(Unit) {
+        try {
+            // Appel API
+            val events = RetrofitInstance.api.getEvents()
+            // Update la liste des events
+            eventsState.value = events
+            // Change l'état du chargement
+            isLoading.value = false
+        } catch (e: Exception) {
+            // Si erreur => chargement à faux et renvoi erreur
+            isLoading.value = false
+            Log.e("EventsScreen", "Erreur réseau: $e")
+        }
+    }
+
+    if (isLoading.value) {
+        // Chargement
+        CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(eventsState.value) { event ->
+                Card(
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .clickable {
+                            val intent = Intent(context, EventDetailActivity::class.java)
+                            intent.putExtra("event_id", event.id)
+                            context.startActivity(intent)
+                        },
+                    colors = CardDefaults.cardColors(containerColor = Color.Red),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp)) {
+                        Text(
+                            text = event.title,
+                            fontSize = 20.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = event.date, fontSize = 14.sp, color = Color.White)
+                        Text(text = event.location, fontSize = 14.sp, color = Color.White)
+                    }
                 }
             }
         }
