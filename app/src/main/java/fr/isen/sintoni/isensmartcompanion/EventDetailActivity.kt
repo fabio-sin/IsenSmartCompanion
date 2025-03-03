@@ -14,13 +14,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,13 +39,21 @@ import fr.isen.sintoni.isensmartcompanion.ui.theme.IsenSmartCompanionTheme
 val eventState = mutableStateOf<Event?>(null)
 private val isLoading = mutableStateOf(true)
 
+
 class EventDetailActivity : ComponentActivity() {
+
+    private var reminderManager: ReminderManager? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         val eventId = intent.getStringExtra("event_id") ?: return
-        Log.d("EventDetailActivity", "Event ID: $eventId")
+
+        reminderManager = ReminderManager(this)
+        val isReminderSet = reminderManager?.isReminderSet(eventId) ?: false
+        Log.d("EventDetailActivity", "Event ID: $eventId, Reminder: ${isReminderSet.toString()}")
+
 
         setContent {
             IsenSmartCompanionTheme {
@@ -64,7 +78,7 @@ class EventDetailActivity : ComponentActivity() {
                 if (isLoading.value) {
                     CircularProgressIndicator(modifier = Modifier.fillMaxSize())
                 } else if (event != null) {
-                    EventDetailScreen(event)
+                    EventDetailScreen(event, isReminderSet)
                 } else {
                     showError("Event not found")
                 }
@@ -79,13 +93,26 @@ class EventDetailActivity : ComponentActivity() {
 
 
 @Composable
-fun EventDetailScreen(event: Event) {
+fun EventDetailScreen(event: Event, isReminderSet: Boolean) {
     val context = LocalContext.current
+    val reminderManager = remember { ReminderManager(context) }
+
+    val hasReminderState = remember { mutableStateOf(isReminderSet) }
+
+    val updateReminderState = { newState: Boolean ->
+        if (newState) {
+            reminderManager.saveReminder(event.id)
+        } else {
+            reminderManager.removeReminder(event.id)
+        }
+        hasReminderState.value = newState
+        Log.d("ReminderState", "Reminder state updated: ${hasReminderState.value}")
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
+            .padding(16.dp), contentAlignment = Alignment.Center
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -94,8 +121,7 @@ fun EventDetailScreen(event: Event) {
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Column(
-                modifier = Modifier
-                    .padding(16.dp),
+                modifier = Modifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -110,13 +136,22 @@ fun EventDetailScreen(event: Event) {
                 InfoRow(label = context.getString(R.string.when_label), value = event.date)
                 InfoRow(label = context.getString(R.string.where_label), value = event.location)
                 InfoRow(
-                    label = context.getString(R.string.category_label),
-                    value = event.category
+                    label = context.getString(R.string.category_label), value = event.category
                 )
                 InfoRow(
-                    label = context.getString(R.string.description_label),
-                    value = event.description
+                    label = context.getString(R.string.description_label), value = event.description
                 )
+
+                IconButton(
+                    onClick = { updateReminderState(!hasReminderState.value) },
+                    modifier = Modifier.padding(top = 16.dp)
+                ) {
+                    Icon(
+                        imageVector = if (hasReminderState.value) Icons.Default.Notifications else Icons.Outlined.Notifications,
+                        contentDescription = context.getString(R.string.reminder),
+                        tint = Color.White
+                    )
+                }
             }
         }
     }
@@ -132,10 +167,7 @@ fun InfoRow(label: String, value: String) {
             color = Color.LightGray
         )
         Text(
-            text = value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.White
+            text = value, fontSize = 20.sp, fontWeight = FontWeight.Medium, color = Color.White
         )
         Spacer(modifier = Modifier.height(4.dp))
     }

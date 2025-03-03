@@ -32,11 +32,19 @@ fun EventsScreen() {
     val eventsState = remember { mutableStateOf<List<Event>>(emptyList()) }
     val isLoading = remember { mutableStateOf(true) }
 
+    val reminderManager = remember { ReminderManager(context) }
+
     // Coroutine pour récupérer les events
     LaunchedEffect(Unit) {
         try {
             // Appel API
             val events = RetrofitInstance.api.getEvents()
+
+            // On récupère l'état du rappel pour chaque événement depuis SharedPreferences
+            events.forEach { event ->
+                event.isReminderSet = reminderManager.isReminderSet(event.id)
+            }
+
             // Update la liste des events
             eventsState.value = events
             // Change l'état du chargement

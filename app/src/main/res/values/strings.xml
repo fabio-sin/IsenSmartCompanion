@@ -16,4 +16,5 @@
     <string name="please_ask">You must ask a question</string>
     <string name="delete_history">DELETE HISTORY</string>
     <string name="delete">Delete</string>
+    <string name="reminder">Reminder toggle</string>
 </resources>
