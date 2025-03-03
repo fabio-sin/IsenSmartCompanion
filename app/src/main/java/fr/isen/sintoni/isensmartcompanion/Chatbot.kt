@@ -56,4 +56,20 @@ class Chatbot(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    // Supprimer un message de l'historique
+    fun deleteChatMessage(chatMessage: ChatMessage) {
+        viewModelScope.launch {
+            chatMessageDao.deleteChatMessage(chatMessage)
+            loadChatHistory()
+        }
+    }
+
+    // Supprimer l'historique entier
+    fun deleteAllChatHistory() {
+        viewModelScope.launch {
+            chatMessageDao.deleteAllChatMessages()
+            loadChatHistory()
+        }
+    }
 }

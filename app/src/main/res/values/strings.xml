@@ -7,11 +7,13 @@
     <string name="question_submitted">Question submitted</string>
     <string name="home">Home</string>
     <string name="events">Events</string>
-    <string name="history">History</string>
+    <string name="history">History of messages</string>
     <string name="event_details_activity">Go to event details activity</string>
     <string name="where_label">Where? </string>
     <string name="when_label">When? </string>
     <string name="category_label">Category: </string>
     <string name="description_label">Description: </string>
     <string name="please_ask">You must ask a question</string>
+    <string name="delete_history">DELETE HISTORY</string>
+    <string name="delete">Delete</string>
 </resources>
