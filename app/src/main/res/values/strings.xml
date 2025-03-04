@@ -17,4 +17,5 @@
     <string name="delete_history">DELETE HISTORY</string>
     <string name="delete">Delete</string>
     <string name="reminder">Reminder toggle</string>
+    <string name="channel_description">Notifications channel for events</string>
 </resources>

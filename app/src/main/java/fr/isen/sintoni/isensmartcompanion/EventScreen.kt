@@ -40,7 +40,7 @@ fun EventsScreen() {
             // Appel API
             val events = RetrofitInstance.api.getEvents()
 
-            // On récupère l'état du rappel pour chaque événement depuis SharedPreferences
+            // On récupère l'état du rappel pour chaque événement depuis les préférences
             events.forEach { event ->
                 event.isReminderSet = reminderManager.isReminderSet(event.id)
             }
@@ -50,7 +50,7 @@ fun EventsScreen() {
             // Change l'état du chargement
             isLoading.value = false
         } catch (e: Exception) {
-            // Si erreur => chargement à faux et renvoi erreur
+            // Si erreur => chargement à faux et renvoie erreur
             isLoading.value = false
             Log.e("EventsScreen", "Erreur réseau: $e")
         }

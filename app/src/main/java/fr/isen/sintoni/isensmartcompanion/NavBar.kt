@@ -1,14 +1,11 @@
 package fr.isen.sintoni.isensmartcompanion
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
@@ -23,7 +20,7 @@ fun BottomNavBar(navController: NavController) {
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Home,
+                    painter = painterResource(id = R.drawable.ic_home),
                     contentDescription = context.getString(R.string.home)
                 )
             },
@@ -34,7 +31,7 @@ fun BottomNavBar(navController: NavController) {
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Notifications,
+                    painter = painterResource(id = R.drawable.ic_events),
                     contentDescription = context.getString(R.string.events)
                 )
             },
@@ -45,7 +42,7 @@ fun BottomNavBar(navController: NavController) {
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Refresh,
+                    painter = painterResource(id = R.drawable.ic_history),
                     contentDescription = context.getString(R.string.history)
                 )
             },

@@ -1,6 +1,8 @@
 package fr.isen.sintoni.isensmartcompanion
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -43,6 +45,7 @@ private val isLoading = mutableStateOf(true)
 class EventDetailActivity : ComponentActivity() {
 
     private var reminderManager: ReminderManager? = null
+    private var notificationSender: NotificationSender? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,9 +53,14 @@ class EventDetailActivity : ComponentActivity() {
 
         val eventId = intent.getStringExtra("event_id") ?: return
 
+        // On initialise le reminder manager
         reminderManager = ReminderManager(this)
         val isReminderSet = reminderManager?.isReminderSet(eventId) ?: false
-        Log.d("EventDetailActivity", "Event ID: $eventId, Reminder: ${isReminderSet.toString()}")
+        Log.d("EventDetailActivity", "Event ID: $eventId, Reminder: $isReminderSet")
+
+        // On initialise le notification sender
+        notificationSender = NotificationSender(this)
+        notificationSender?.createNotificationChannel()
 
 
         setContent {
@@ -78,7 +86,7 @@ class EventDetailActivity : ComponentActivity() {
                 if (isLoading.value) {
                     CircularProgressIndicator(modifier = Modifier.fillMaxSize())
                 } else if (event != null) {
-                    EventDetailScreen(event, isReminderSet)
+                    EventDetailScreen(event, isReminderSet, notificationSender)
                 } else {
                     showError("Event not found")
                 }
@@ -93,15 +101,19 @@ class EventDetailActivity : ComponentActivity() {
 
 
 @Composable
-fun EventDetailScreen(event: Event, isReminderSet: Boolean) {
+fun EventDetailScreen(event: Event, isReminderSet: Boolean, notificationSender: NotificationSender?) {
     val context = LocalContext.current
-    val reminderManager = remember { ReminderManager(context) }
 
+    val reminderManager = remember { ReminderManager(context) }
     val hasReminderState = remember { mutableStateOf(isReminderSet) }
 
     val updateReminderState = { newState: Boolean ->
         if (newState) {
             reminderManager.saveReminder(event.id)
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                notificationSender?.sendNotification(event.title, event.date)
+            }, 10000)
         } else {
             reminderManager.removeReminder(event.id)
         }
