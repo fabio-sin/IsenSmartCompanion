@@ -7,10 +7,10 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val keystorePropertiesFile = rootProject.file("keystore.properties")
-val keystoreProperties = Properties()
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(keystorePropertiesFile.inputStream())
+val gradlePropertiesFile = rootProject.file("gradle.properties")
+val gradleProperties = Properties()
+if (gradlePropertiesFile.exists()) {
+    gradleProperties.load(gradlePropertiesFile.inputStream())
 }
 
 
@@ -26,7 +26,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "GEMINI_API_KEY", "\"${keystoreProperties["geminiApiKey"]}\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"${gradleProperties["geminiApiKey"]}\"")
     }
 
     buildFeatures {
