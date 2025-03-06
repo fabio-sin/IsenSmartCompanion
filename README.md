@@ -19,4 +19,4 @@ Pour que les notifications fonctionnent correctement, vous devez activer manuell
 
 ## Installation
 
-L'APK signée de l'application se trouve à la racine du projet.
+L'APK signée de l'application est située dans `app/release/app-release.apk`.
